@@ -1,49 +1,60 @@
-name: Issue Labeled
-
-on:
-  issues:
-    types: [labeled]
-
 jobs:
   reply-labeled:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
-      - name: contribution welcome
-        if: github.event.label.name == 'contribution welcome' || github.event.label.name == 'help wanted'
-        uses: actions-cool/issues-helper@v3
-        with:
-          actions: "create-comment, remove-labels"
-          token: ${{ secrets.GITHUB_TOKEN }}
-          issue-number: ${{ github.event.issue.number }}
-          body: |
-            Hello @${{ github.event.issue.user.login }}. We like your proposal/feedback and would appreciate a contribution via a Pull Request by you or another community member. We thank you in advance for your contribution and are looking forward to reviewing it!
-          labels: "pending triage, need reproduction"
+    - continue-on-error: true
+      if: github.event.label.name == 'contribution welcome' || github.event.label.name
+        == 'help wanted'
+      name: contribution welcome
+      uses: actions-cool/issues-helper@v3
+      with:
+        actions: create-comment, remove-labels
+        body: 'Hello @${{ github.event.issue.user.login }}. We like your proposal/feedback
+          and would appreciate a contribution via a Pull Request by you or another
+          community member. We thank you in advance for your contribution and are
+          looking forward to reviewing it!
 
-      - name: remove pending
-        if: contains(github.event.label.name, 'priority') && contains(github.event.issue.labels.*.name, 'pending triage')
-        uses: actions-cool/issues-helper@v3
-        with:
-          actions: "remove-labels"
-          token: ${{ secrets.GITHUB_TOKEN }}
-          issue-number: ${{ github.event.issue.number }}
-          labels: "pending triage"
+          '
+        issue-number: ${{ github.event.issue.number }}
+        labels: pending triage, need reproduction
+        token: ${{ secrets.GITHUB_TOKEN }}
+    - continue-on-error: true
+      if: contains(github.event.label.name, 'priority') && contains(github.event.issue.labels.*.name,
+        'pending triage')
+      name: remove pending
+      uses: actions-cool/issues-helper@v3
+      with:
+        actions: remove-labels
+        issue-number: ${{ github.event.issue.number }}
+        labels: pending triage
+        token: ${{ secrets.GITHUB_TOKEN }}
+    - continue-on-error: true
+      if: '(github.event.label.name == ''enhancement'' || contains(github.event.label.name,
+        ''priority'')) && contains(github.event.issue.labels.*.name, ''enhancement:
+        pending triage'')'
+      name: remove enhancement pending
+      uses: actions-cool/issues-helper@v3
+      with:
+        actions: remove-labels
+        issue-number: ${{ github.event.issue.number }}
+        labels: 'enhancement: pending triage'
+        token: ${{ secrets.GITHUB_TOKEN }}
+    - continue-on-error: true
+      if: github.event.label.name == 'need reproduction'
+      name: need reproduction
+      uses: actions-cool/issues-helper@v3
+      with:
+        actions: create-comment, remove-labels
+        body: 'Hello @${{ github.event.issue.user.login }}. Please provide a [minimal
+          reproduction](https://stackoverflow.com/help/minimal-reproducible-example)
+          using a GitHub repository. Issues marked with `need reproduction` will be
+          closed if they have no activity within 3 days.
 
-      - name: remove enhancement pending
-        if: "(github.event.label.name == 'enhancement' || contains(github.event.label.name, 'priority')) && contains(github.event.issue.labels.*.name, 'enhancement: pending triage')"
-        uses: actions-cool/issues-helper@v3
-        with:
-          actions: "remove-labels"
-          token: ${{ secrets.GITHUB_TOKEN }}
-          issue-number: ${{ github.event.issue.number }}
-          labels: "enhancement: pending triage"
-
-      - name: need reproduction
-        if: github.event.label.name == 'need reproduction'
-        uses: actions-cool/issues-helper@v3
-        with:
-          actions: "create-comment, remove-labels"
-          token: ${{ secrets.GITHUB_TOKEN }}
-          issue-number: ${{ github.event.issue.number }}
-          body: |
-            Hello @${{ github.event.issue.user.login }}. Please provide a [minimal reproduction](https://stackoverflow.com/help/minimal-reproducible-example) using a GitHub repository. Issues marked with `need reproduction` will be closed if they have no activity within 3 days.
-          labels: "pending triage"
+          '
+        issue-number: ${{ github.event.issue.number }}
+        labels: pending triage
+        token: ${{ secrets.GITHUB_TOKEN }}
+name: Issue Labeled
+on:
+  repository_dispatch:
+    types: trigger-ga___issue-labeled.yml

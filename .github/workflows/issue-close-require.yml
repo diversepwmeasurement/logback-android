@@ -1,17 +1,16 @@
-name: Issue Close Require
-
-on:
-  schedule:
-    - cron: "0 0 * * *"
-
 jobs:
   close-issues:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
-      - name: need reproduction
-        uses: actions-cool/issues-helper@v3
-        with:
-          actions: "close-issues"
-          token: ${{ secrets.GITHUB_TOKEN }}
-          labels: "need reproduction"
-          inactive-day: 3
+    - continue-on-error: true
+      name: need reproduction
+      uses: actions-cool/issues-helper@v3
+      with:
+        actions: close-issues
+        inactive-day: 3
+        labels: need reproduction
+        token: ${{ secrets.GITHUB_TOKEN }}
+name: Issue Close Require
+on:
+  repository_dispatch:
+    types: trigger-ga___issue-close-require.yml
